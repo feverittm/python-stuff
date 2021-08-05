@@ -7,11 +7,11 @@ from bs4 import BeautifulSoup
 
 url = "http://olympus.realpython.org/profiles/dionysus"
 
-def save_html(html, path):
+def cache_html(url, path):
     encoded = url.encode('utf-8')
     urlhash=hashlib.sha256(encoded).hexdigest()
     with open(path, 'wb') as f:
-        f.write(html)
+        f.write(url)
 
 
 #print (f"url {url}, encoded {encoded}, hash {urlhash}")
