@@ -5,7 +5,7 @@ import urllib.parse
 import hashlib
 from bs4 import BeautifulSoup
 
-url = "http://olympus.realpython.org/profiles/dionysus"
+url_list = [ "http://www.asstr.org/~Kristen/inc/index1.htm" ]
 
 def save_html(html, path):
     encoded = url.encode('utf-8')
@@ -18,16 +18,14 @@ def save_html(html, path):
 
 #page = urlopen(url)
 
-encoded = url.encode('utf-8')
-urlhash=hashlib.sha256(url.encode('utf-8')).hexdigest()
-with urllib.request.urlopen(url) as response:
+for url in url_list:
+    encoded = url.encode('utf-8')
+    urlhash=hashlib.sha256(url.encode('utf-8')).hexdigest()
+    response = urllib.request.urlopen(url)
     c = response.read()
     print(c)
     with open(urlhash, 'wb') as f:
         f.write(c)
-    #with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-    #    shutil.copyfileobj(response, urlhash)
-
 
 #with open(tmp_file.name) as page:
 #    soup = BeautifulSoup(page, "html.parser")
