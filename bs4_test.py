@@ -23,6 +23,10 @@ def open_html(path):
     with open(path, 'rb') as f:
         return f.read()
 
+def page_head(index, length):
+    print(page[index + length])
+
+
 for url in url_list:
     encoded = url.encode('utf-8')
     urlhash = hashlib.sha256(url.encode('utf-8')).hexdigest() + ".htm"
@@ -39,9 +43,27 @@ for url in url_list:
         print(f'{index}\n\n')
         ch = page[index+len(tag)+3:]
         page = ch
+        print (page[:10])
+
+    for i in range(2):
+        tag="<BR>"
+        endOfHeader = page.find(tag)
+        index = endOfHeader
+        print(f'{index}\n\n')
+        ch = page[index+len(tag)+2:]
+        page = ch
+        print (page[:10])
 
     soup = BeautifulSoup(page, 'html.parser')
-    print(soup.prettify())
+    address = soup.find('a')
+    link = address.attrs['href']
+    name = address.string
+    print(f'Link = {link}')
+    print(address.string)
+
+    sibling = soup.a.next_sibling
+    print(sibling)
+    #print(soup.prettify())
 
     # state machine for capturing story tags:
     # 1 - scan from beginning until the end of the second table (2nd /TABLE tag)
