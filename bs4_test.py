@@ -13,12 +13,11 @@ except ImportError:
     print("Can't open the secrets file with the url_list")
     raise
 
-def save_html(url, path):
-    response = urllib.request.urlopen(url)
-    c = response.read()
-    with open(urlhash, 'wb') as f:
-        f.write(c)
-
+def cache_html(url, path):
+    encoded = url.encode('utf-8')
+    urlhash=hashlib.sha256(encoded).hexdigest()
+    with open(path, 'wb') as f:
+        f.write(url)
 
 def open_html(path):
     with open(path, 'rb') as f:
