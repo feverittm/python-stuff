@@ -4,6 +4,7 @@ import urllib.request
 import urllib.parse
 import hashlib
 import os
+import re
 from bs4 import BeautifulSoup
 
 # Get details and more from a secrets.py file
@@ -25,6 +26,30 @@ def open_html(path):
 
 def page_head(index, length):
     print(page[index + length])
+
+def get_entry(address):
+    link = address.attrs['href']
+    print(f'Link = {link}')
+    author_start = address.string.rfind('-')
+    name = address.string[:author_start-1].strip()
+    print(f'Story Title = {name}')
+
+    author = address.string[author_start+1:].strip()
+    p = re.compile('\s*by\s*')
+    author = p.sub("",author)
+    print(f'Author = {author}')
+
+    description = address.next_sibling
+    tag_start = description.rfind('(')
+    story_tags = description[tag_start+1:-2].strip().replace(" ", "").split(',')
+    description = description[:tag_start].strip()
+    p = re.compile('^\s*-\s*')
+    description = p.sub("",description)
+    print(f'Description = {description}')
+    print(f'Story Tags = {story_tags}')
+
+    print("\n")
+
 
 
 for url in url_list:
@@ -54,16 +79,13 @@ for url in url_list:
         page = ch
         print (page[:10])
 
+    count=0
     soup = BeautifulSoup(page, 'html.parser')
-    address = soup.find('a')
-    link = address.attrs['href']
-    name = address.string
-    print(f'Link = {link}')
-    print(address.string)
-
-    sibling = soup.a.next_sibling
-    print(sibling)
-    #print(soup.prettify())
+    addresses = soup.find_all('a')
+    for address in addresses:
+        print(f'Count: {count}')
+        get_entry(address)
+        count = count + 1
 
     # state machine for capturing story tags:
     # 1 - scan from beginning until the end of the second table (2nd /TABLE tag)
