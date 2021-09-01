@@ -2,3 +2,4 @@ secrets.py
 *.htm
 *.pyc
 out
+stories.json
