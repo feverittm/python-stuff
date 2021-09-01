@@ -42,12 +42,17 @@ def get_entry(address):
         return()
     print(f'Link = {link}')
     print(f'   address string: {address.string.strip()}')
-    if address.string.strip()[:4] == 'Part':
-        print("   ... multipart story ")
-        addendum = address.string.strip()
+    if address.string.strip()[:-1] == 'Part ':
+        story_part = address.string[5:]
         name = stories[-1]['name']
+        print(f"   ... multipart story {story_part}")
+        if name[len(name)-6:-1] == 'Part ':
+            name = name[:-1] + story_part
+        else:
+            name = name + ' - Part ' + story_part
+        print (f'    ... multipart story title: {name}')
         author = stories[-1]['author']
-        description = stories[-1]['description'] + ' - ' + addendum
+        description = stories[-1]['description']
         story_tags = stories[-1]['tags']
     else:
         author_start = address.string.rfind('-')
@@ -84,6 +89,8 @@ def main():
     for url in url_list:
         encoded = url.encode('utf-8')
         urlhash = hashlib.sha256(url.encode('utf-8')).hexdigest() + ".htm"
+
+        print(f'Loading url {url} ...')
 
         if not os.path.exists(urlhash):
             print(f"Loading missing file {url}")
