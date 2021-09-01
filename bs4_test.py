@@ -131,9 +131,9 @@ def main():
         #     end story link with <BR><BR>
         # 4 - story stops with multiple blank lines (>3)
 
-        with open('stories.json', 'w') as outfile:
-            json.dump(stories, outfile)
-
 if __name__ == "__main__":
     stories = []
     main()
+    
+    with open('stories.json', 'w') as outfile:
+        json.dump(stories, outfile)
