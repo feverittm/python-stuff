@@ -7,6 +7,7 @@ import os
 import re
 import pprint
 import json
+import sys
 from bs4 import BeautifulSoup
 
 
@@ -42,7 +43,7 @@ def get_entry(address):
         return()
     print(f'Link = {link}')
     print(f'   address string: {address.string.strip()}')
-    if address.string.strip()[:-1] == 'Part ':
+    if address.string.strip()[:5] == 'Part ':
         story_part = address.string[5:]
         name = stories[-1]['name']
         print(f"   ... multipart story {story_part}")
@@ -54,6 +55,9 @@ def get_entry(address):
         author = stories[-1]['author']
         description = stories[-1]['description']
         story_tags = stories[-1]['tags']
+        #if int(story_part) > 4:
+        #    sys.exit()
+
     else:
         author_start = address.string.rfind('-')
         name = address.string[:author_start-1].strip()
@@ -123,7 +127,7 @@ def main():
             link = address.attrs['href']
             if link[:5] == 'index':
                 break
-            print (f'  ... link = {link[:5]}')
+            #print (f'  ... link = {link[:5]}')
             get_entry(address)
             count = count + 1
 
