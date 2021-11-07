@@ -8,18 +8,18 @@ import re
 import pprint
 import json
 import sys
+import ssl
 from bs4 import BeautifulSoup
-
-
 
 # Get details and more from a secrets.py file
 try:
-    from secrets import url_list
+    from private_urllist import url_list
 except ImportError:
     print("Can't open the secrets file with the url_list")
     raise
 
 def cache_html(url, path):
+    ssl.SSLContext.verify_mode = ssl.VerifyMode.CERT_OPTIONAL
     #print(f'path ... {path}')
     with open(path, 'wb') as f:
         with urllib.request.urlopen(url) as response:
@@ -91,7 +91,6 @@ def get_entry(address):
 
 def main():
     for url in url_list:
-        encoded = url.encode('utf-8')
         urlhash = hashlib.sha256(url.encode('utf-8')).hexdigest() + ".htm"
 
         print(f'Loading url {url} ...')
