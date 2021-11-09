@@ -1,6 +1,6 @@
-my_secrets.py
-secrets.py
 *.htm
 *.pyc
 out
 stories.json
+my_secrets.py
+private_urllist.py

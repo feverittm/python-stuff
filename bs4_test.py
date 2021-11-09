@@ -7,6 +7,8 @@ import os
 import re
 import pprint
 import json
+import sys
+import ssl
 from bs4 import BeautifulSoup
 
 # Get details and more from a secrets.py file
@@ -17,6 +19,7 @@ except ImportError:
     raise
 
 def cache_html(url, path):
+    ssl.SSLContext.verify_mode = ssl.VerifyMode.CERT_OPTIONAL
     #print(f'path ... {path}')
     with open(path, 'wb') as f:
         with urllib.request.urlopen(url) as response:
@@ -40,7 +43,7 @@ def get_entry(address):
         return()
     print(f'Link = {link}')
     print(f'   address string: {address.string.strip()}')
-    if address.string.strip()[:-1] == 'Part ':
+    if address.string.strip()[:5] == 'Part ':
         story_part = address.string[5:]
         name = stories[-1]['name']
         print(f"   ... multipart story {story_part}")
@@ -52,6 +55,9 @@ def get_entry(address):
         author = stories[-1]['author']
         description = stories[-1]['description']
         story_tags = stories[-1]['tags']
+        #if int(story_part) > 4:
+        #    sys.exit()
+
     else:
         author_start = address.string.rfind('-')
         name = address.string[:author_start-1].strip()
@@ -85,7 +91,6 @@ def get_entry(address):
 
 def main():
     for url in url_list:
-        encoded = url.encode('utf-8')
         urlhash = hashlib.sha256(url.encode('utf-8')).hexdigest() + ".htm"
 
         print(f'Loading url {url} ...')
@@ -121,7 +126,7 @@ def main():
             link = address.attrs['href']
             if link[:5] == 'index':
                 break
-            print (f'  ... link = {link[:5]}')
+            #print (f'  ... link = {link[:5]}')
             get_entry(address)
             count = count + 1
 
