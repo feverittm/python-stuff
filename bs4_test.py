@@ -9,11 +9,9 @@ import pprint
 import json
 from bs4 import BeautifulSoup
 
-
-
 # Get details and more from a secrets.py file
 try:
-    from secrets import url_list
+    from my_secrets import url_list
 except ImportError:
     print("Can't open the secrets file with the url_list")
     raise
