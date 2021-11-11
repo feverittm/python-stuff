@@ -5,7 +5,7 @@ import tbapy
 import json
 
 try:
-    from tba_key import key
+    from tba_token import key
     tba = tbapy.TBA(key)
 except ImportError:
     print("Can't open the tba key file")
