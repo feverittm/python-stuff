@@ -1,1 +1,2 @@
 key = 'WgsfK1zC2r0o7RCsjjfCT4w51QDBcxzrU8xcOFXlLrBnN890zY7a6c1HuNn3qv2c'
+personal_access_key = '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'
