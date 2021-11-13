@@ -53,3 +53,7 @@ for team_event in team_events:
 
 # For each event (let's focus on one event first...) create a table/list of each match and
 # include: event_id, match_type, match_id, 
+
+matches = tba.event_matches('2019orlak', simple=True)
+for match in matches:
+    print(json.dumps(match, indent=4, sort_keys=True))
