@@ -3,6 +3,9 @@
 
 import tbapy
 import json
+import sys
+import numpy as np
+import pandas as pd
 
 try:
     from tba_token import key
@@ -20,15 +23,30 @@ district_key = str(m_year) + district
 
 # what events were in the district?
 events = tba.district_events(district_key, simple=True)
+event_list = []
 for event in events:
     #print(json.dumps(event, indent=4, sort_keys=True))
-    print(event['key'])
+    #print(event['key'])
+    if event["state_prov"] == "OR" and event["event_type"] == 1:
+        event_list.append(event['key'])
+
+print("Oregon Events: ",event_list)
 
 # which teams are in this district
+#  Fields we need:
+#       key, nickname, city
+# need to rearrange json into dataframe keyed to 'key'
+#
 teams = tba.district_teams(district_key, simple=True)
-#for team in teams:
-#    print(json.dumps(team, indent=4, sort_keys=True))
-
+df_pre = pd.json_normalize(teams)
+df_teams = df_pre[['key', 'city', 'state_prov', 'team_number', 'nickname']].sort_values(by=['team_number'])
+print("Pacific Northwest Teams:")
+with pd.option_context('display.max_rows', None,
+                       'display.max_columns', None,
+                       'display.precision', 3,
+                       ):
+    print(df_teams[['key', 'nickname']])
+    
 # which events did my team participate in during the specified year
 team_events = tba.team_events(team_key, year=m_year, simple=True)
 for team_event in team_events:
@@ -51,9 +69,31 @@ for team_event in team_events:
 # The well-known Offensive Power Rating (OPR), Combined Contribution to Winning Margin (CCWM),
 # and Defensive Power Rating (DPR) measures are discussed and analyzed.
 
-# For each event (let's focus on one event first...) create a table/list of each match and
-# include: event_id, match_type, match_id, 
+# For prediction we need to know:
+#   match key
+#   Teams in the match, red/blue
+#   autonomous points: "autoPoints"
+#   teleoperated points: "cargoPoints", "hatchPanelPoints", "teleopPoints"
+#   end game points: "habClimbPoints"
+#   foul points: "foulPoints", "foulCount"
+#   total match Points: "totalPoints"
+#   Ranking Points: "rp"
+#   "Winning Alliance"
 
-matches = tba.event_matches('2019orlak', simple=True)
+# For each event (let's focus on one event first...) create a table/list of each match and
+# include: event_id, match_type, match_id
+
+# To start with read the match data into a dataframe indexed by the match key.
+
+# Need to break the event data apart and map them to each team.
+
+matches = tba.event_matches('2019orwil', simple=False)
+idx=0
 for match in matches:
+    print("Match: ",idx,", Comp Level:",match["comp_level"])
+    df = pd.json_normalize(match, "score_breakdown")
     print(json.dumps(match, indent=4, sort_keys=True))
+    idx += 1
+    #if match["comp_level"] != "qm":
+    #    continue
+    sys.exit()
