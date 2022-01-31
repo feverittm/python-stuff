@@ -56,7 +56,7 @@ for _team in teams:
                 pnw_team_events[_team['key']] = mylist
                 
 for team_event in pnw_team_events:
-    if '2019orwil' in pnw_team_events[team_event]:
+    if any(elem in ['2019orwil', '2019orlak'] for elem in  pnw_team_events[team_event]):
         print(team_event, ": ",pnw_team_events[team_event])
         
 sys.exit()
