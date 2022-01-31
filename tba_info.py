@@ -21,38 +21,45 @@ district = 'pnw'
 team_key = 'frc' + str(myteam)
 district_key = str(m_year) + district
 
-# what events were in the district?
-events = tba.district_events(district_key, simple=True)
-event_list = []
-for event in events:
-    #print(json.dumps(event, indent=4, sort_keys=True))
-    #print(event['key'])
-    if event["state_prov"] == "OR" and event["event_type"] == 1:
-        event_list.append(event['key'])
-
-print("Oregon Events: ",event_list)
-
-# which teams are in this district
+# Which teams are in this district
 #  Fields we need:
 #       key, nickname, city
+
 # need to rearrange json into dataframe keyed to 'key'
 #
 teams = tba.district_teams(district_key, simple=True)
 df_pre = pd.json_normalize(teams)
 df_teams = df_pre[['key', 'city', 'state_prov', 'team_number', 'nickname']].sort_values(by=['team_number'])
-print("Pacific Northwest Teams:")
-with pd.option_context('display.max_rows', None,
-                       'display.max_columns', None,
-                       'display.precision', 3,
-                       ):
-    print(df_teams[['key', 'nickname']])
-    
+#print("Pacific Northwest Teams:")
+#with pd.option_context('display.max_rows', None,
+#                       'display.max_columns', None,
+#                       'display.precision', 3,
+#                       ):
+#   print(df_teams[['key', 'nickname']])
+
+
 # which events did my team participate in during the specified year
-team_events = tba.team_events(team_key, year=m_year, simple=True)
-for team_event in team_events:
-    if team_event['event_type'] < 5:
+pnw_team_events={}
+for _team in teams:
+    #print(json.dumps(_team, indent=4, sort_keys=True))
+    #print("Team: ", _team['key'])
+    team_events = tba.team_events(_team['key'], year=m_year, simple=True)
+    for team_event in team_events:
         #print(json.dumps(team_event, indent=4, sort_keys=True))
-        print(team_event['event_code']," ",team_event['name'])
+        if team_event['event_type'] < 2:
+            mylist = pnw_team_events.get(_team['key'])
+            if mylist:
+                mylist.append(team_event['key'])
+            else:
+                # key not found
+                mylist = [team_event['key']]
+                pnw_team_events[_team['key']] = mylist
+                
+for team_event in pnw_team_events:
+    if '2019orwil' in pnw_team_events[team_event]:
+        print(team_event, ": ",pnw_team_events[team_event])
+        
+sys.exit()
     
 
 # for each event in the district, get a list of teams and find
