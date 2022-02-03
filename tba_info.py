@@ -20,6 +20,7 @@ m_year = 2019
 district = 'pnw'
 team_key = 'frc' + str(myteam)
 district_key = str(m_year) + district
+event_key = str(m_year) + 'orwil'
 
 # Which teams are in this district
 #  Fields we need:
@@ -38,7 +39,8 @@ df_teams = df_pre[['key', 'city', 'state_prov', 'team_number', 'nickname']].sort
 #   print(df_teams[['key', 'nickname']])
 
 
-# which events did my team participate in during the specified year
+# Which teams are coming to a same event as my test amd which other events are
+# they going to.
 pnw_team_events={}
 for _team in teams:
     #print(json.dumps(_team, indent=4, sort_keys=True))
@@ -55,14 +57,17 @@ for _team in teams:
                 mylist = [team_event['key']]
                 pnw_team_events[_team['key']] = mylist
                 
-for team_event in pnw_team_events:
-    if any(elem in ['2019orwil', '2019orlak'] for elem in  pnw_team_events[team_event]):
-        print(team_event, ": ",pnw_team_events[team_event])
-        
-sys.exit()
-    
+#for team in pnw_team_events:
+#    if any(elem in pnw_team_events[team_key] for elem in  pnw_team_events[team]):
+#        print(team, ": ",pnw_team_events[team])
 
-# for each event in the district, get a list of teams and find
+    
+# Unpack the match data.
+#
+# Need to iterate across matches in current and previous events to our current event
+# and generate the model features we need to predict the outcome.
+#
+# For each event in the district, get a list of teams and find
 # which matches they participate in and then extract the information
 # for that match.
 
@@ -76,7 +81,7 @@ sys.exit()
 # The well-known Offensive Power Rating (OPR), Combined Contribution to Winning Margin (CCWM),
 # and Defensive Power Rating (DPR) measures are discussed and analyzed.
 
-# For prediction we need to know:
+# For predictions in 2019 we need to know:
 #   match key
 #   Teams in the match, red/blue
 #   autonomous points: "autoPoints"
@@ -92,15 +97,36 @@ sys.exit()
 
 # To start with read the match data into a dataframe indexed by the match key.
 
-# Need to break the event data apart and map them to each team.
+# Need to break the event data apart and map them to each tea
 
-matches = tba.event_matches('2019orwil', simple=False)
+# 2/3/2022:
+# We actually need to seperate by match and then index by team number (so in a csv file they
+# would show up as a column per team and a row per match).  Then sort by match number and align rows.
+# Then add the metch results (auto score, teleop score, etc) to the match row.  This should allow
+# calculation of OPR and CCWR after removing penaly points.
+
+event_teams = tba.event_teams(event_key, simple=False)
+print (event_key, "has", len(event_teams), "teams")
+i=0
+team={}
+for iteam in event_teams:
+    team[iteam["key"]] = i
+    #print(i," : ", iteam["key"])
+    i += 1
+
+matches = tba.event_matches(event_key, simple=False)
 idx=0
 for match in matches:
+    if match["comp_level"] != "qm":
+        continue
     print("Match: ",idx,", Comp Level:",match["comp_level"])
     df = pd.json_normalize(match, "score_breakdown")
     print(json.dumps(match, indent=4, sort_keys=True))
+    for alliance in ["red", "blue"]:
+        alliance_info = match["alliances"][alliance]
+        alliance_teams = alliance_info["team_keys"]
+        print (alliance, " teams: ", alliance_teams, ", Alliance Score: ", alliance_info["score"])
+
     idx += 1
-    #if match["comp_level"] != "qm":
-    #    continue
+
     sys.exit()
