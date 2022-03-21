@@ -16,7 +16,7 @@ except ImportError:
 
 # setup
 myteam = 997
-m_year = 2019
+m_year = 2022
 district = 'pnw'
 team_key = 'frc' + str(myteam)
 district_key = str(m_year) + district
@@ -121,11 +121,20 @@ for match in matches:
         continue
     print("Match: ",idx,", Comp Level:",match["comp_level"])
     df = pd.json_normalize(match, "score_breakdown")
-    print(json.dumps(match, indent=4, sort_keys=True))
+    sb = match["score_breakdown"]
+    #print(json.dumps(match, indent=4, sort_keys=True))
+    #print(json.dumps(sb, indent=4, sort_keys=True))
     for alliance in ["red", "blue"]:
+        auto_points = sb[alliance]["autoPoints"]
+        teleop_points = sb[alliance]["teleopPoints"]
+        foul_points = sb[alliance]["foulPoints"]
+        endgame_points = sb[alliance]["endgamePoints"]
+        rp = sb[alliance]["rp"] # ranking points
         alliance_info = match["alliances"][alliance]
         alliance_teams = alliance_info["team_keys"]
-        print (alliance, " teams: ", alliance_teams, ", Alliance Score: ", alliance_info["score"])
+        print (alliance, " teams: ", alliance_teams,
+               ", Auto Points:", auto_points, ", Foul Points:", foul_points, "Teleop Points:", teleop_points,
+               ", Endgame Points:", endgame_points, ", Alliance Score:", alliance_info["score"], ", Ranking Points:", rp)
 
     idx += 1
 
