@@ -6,6 +6,7 @@ import json
 import sys
 import numpy as np
 import pandas as pd
+import tabulate
 
 try:
     from tba_token import key
@@ -114,11 +115,13 @@ for iteam in event_teams:
     #print(i," : ", iteam["key"])
     i += 1
 
+match_data = []
 matches = tba.event_matches(event_key, simple=False)
 idx=0
 for match in matches:
     if match["comp_level"] != "qm":
         continue
+    print("... key:", match['comp_level'], match['match_number'])
     print("Match: ",idx,", Comp Level:",match["comp_level"])
     df = pd.json_normalize(match, "score_breakdown")
     sb = match["score_breakdown"]
@@ -132,10 +135,15 @@ for match in matches:
         rp = sb[alliance]["rp"] # ranking points
         alliance_info = match["alliances"][alliance]
         alliance_teams = alliance_info["team_keys"]
-        print (alliance, " teams: ", alliance_teams,
-               ", Auto Points:", auto_points, ", Foul Points:", foul_points, "Teleop Points:", teleop_points,
-               ", Endgame Points:", endgame_points, ", Alliance Score:", alliance_info["score"], ", Ranking Points:", rp)
+        for team in alliance_teams:
+            #print (alliance, " team: ", team,
+            #   ", Auto Points:", auto_points, ", Foul Points:", foul_points, "Teleop Points:", teleop_points,
+            #   ", Endgame Points:", endgame_points, ", Alliance Score:", alliance_info["score"], ", Ranking Points:", rp)
+            matchinfo = (match['match_number'], match['comp_level'], team, alliance, auto_points, foul_points, teleop_points,
+                     endgame_points, alliance_info['score'], rp)
+            match_data.append(matchinfo)
+            #print(matchinfo)
 
     idx += 1
 
-    sys.exit()
+print(tabulate(match_data))
