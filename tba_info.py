@@ -6,7 +6,8 @@ import json
 import sys
 import numpy as np
 import pandas as pd
-import tabulate
+from tabulate import tabulate
+import csv
 
 try:
     from tba_token import key
@@ -29,9 +30,9 @@ event_key = str(m_year) + 'orwil'
 
 # need to rearrange json into dataframe keyed to 'key'
 #
-teams = tba.district_teams(district_key, simple=True)
-df_pre = pd.json_normalize(teams)
-df_teams = df_pre[['key', 'city', 'state_prov', 'team_number', 'nickname']].sort_values(by=['team_number'])
+#teams = tba.district_teams(district_key, simple=True)
+#df_pre = pd.json_normalize(teams)
+#df_teams = df_pre[['key', 'city', 'state_prov', 'team_number', 'nickname']].sort_values(by=['team_number'])
 #print("Pacific Northwest Teams:")
 #with pd.option_context('display.max_rows', None,
 #                       'display.max_columns', None,
@@ -42,21 +43,21 @@ df_teams = df_pre[['key', 'city', 'state_prov', 'team_number', 'nickname']].sort
 
 # Which teams are coming to a same event as my test amd which other events are
 # they going to.
-pnw_team_events={}
-for _team in teams:
-    #print(json.dumps(_team, indent=4, sort_keys=True))
-    #print("Team: ", _team['key'])
-    team_events = tba.team_events(_team['key'], year=m_year, simple=True)
-    for team_event in team_events:
-        #print(json.dumps(team_event, indent=4, sort_keys=True))
-        if team_event['event_type'] < 2:
-            mylist = pnw_team_events.get(_team['key'])
-            if mylist:
-                mylist.append(team_event['key'])
-            else:
-                # key not found
-                mylist = [team_event['key']]
-                pnw_team_events[_team['key']] = mylist
+# pnw_team_events={}
+# for _team in teams:
+#     #print(json.dumps(_team, indent=4, sort_keys=True))
+#     #print("Team: ", _team['key'])
+#     team_events = tba.team_events(_team['key'], year=m_year, simple=True)
+#     for team_event in team_events:
+#         #print(json.dumps(team_event, indent=4, sort_keys=True))
+#         if team_event['event_type'] < 2:
+#             mylist = pnw_team_events.get(_team['key'])
+#             if mylist:
+#                 mylist.append(team_event['key'])
+#             else:
+#                 # key not found
+#                 mylist = [team_event['key']]
+#                 pnw_team_events[_team['key']] = mylist
                 
 #for team in pnw_team_events:
 #    if any(elem in pnw_team_events[team_key] for elem in  pnw_team_events[team]):
@@ -106,29 +107,38 @@ for _team in teams:
 # Then add the metch results (auto score, teleop score, etc) to the match row.  This should allow
 # calculation of OPR and CCWR after removing penaly points.
 
-event_teams = tba.event_teams(event_key, simple=False)
-print (event_key, "has", len(event_teams), "teams")
-i=0
-team={}
-for iteam in event_teams:
-    team[iteam["key"]] = i
-    #print(i," : ", iteam["key"])
-    i += 1
 
-match_data = []
+# event_teams = tba.event_teams(event_key, simple=False)
+# print (event_key, "has", len(event_teams), "teams")
+# i=0
+# team={}
+# for iteam in event_teams:
+#     team[iteam["key"]] = i
+#     #print(i," : ", iteam["key"])
+#     i += 1
+
+# 6/8/2022:
+# We need a simpler list.
+# From /event/{event_key}/matches -> event_matches
+# ... really only interested in qualification matches (i.e. where 'comp_level' = 'qm')
+# team_key : event_key_match_key : 
+
+match_data = [['match_number', 'comp_level', 'team', 'alliance', 'auto points', 'taxi points', 'foul points', 'teleop points',
+                     'endgame_points', 'hanger ranking pt', 'score', 'rp']]
 matches = tba.event_matches(event_key, simple=False)
 idx=0
 for match in matches:
     if match["comp_level"] != "qm":
         continue
     print("... key:", match['comp_level'], match['match_number'])
-    print("Match: ",idx,", Comp Level:",match["comp_level"])
+    print("Index: ",idx,", Comp Level:",match["comp_level"])
     df = pd.json_normalize(match, "score_breakdown")
     sb = match["score_breakdown"]
     #print(json.dumps(match, indent=4, sort_keys=True))
     #print(json.dumps(sb, indent=4, sort_keys=True))
     for alliance in ["red", "blue"]:
         auto_points = sb[alliance]["autoPoints"]
+        taxi_points = sb[alliance]["autoTaxiPoints"]
         teleop_points = sb[alliance]["teleopPoints"]
         foul_points = sb[alliance]["foulPoints"]
         endgame_points = sb[alliance]["endgamePoints"]
@@ -139,11 +149,14 @@ for match in matches:
             #print (alliance, " team: ", team,
             #   ", Auto Points:", auto_points, ", Foul Points:", foul_points, "Teleop Points:", teleop_points,
             #   ", Endgame Points:", endgame_points, ", Alliance Score:", alliance_info["score"], ", Ranking Points:", rp)
-            matchinfo = (match['match_number'], match['comp_level'], team, alliance, auto_points, foul_points, teleop_points,
-                     endgame_points, alliance_info['score'], rp)
+            matchinfo = (match['match_number'], match['comp_level'], team, alliance, auto_points, taxi_points, foul_points, teleop_points,
+                     endgame_points, sb[alliance]["hangarBonusRankingPoint"], alliance_info['score'], rp)
             match_data.append(matchinfo)
             #print(matchinfo)
-
     idx += 1
 
-print(tabulate(match_data))
+print(tabulate(match_data, headers='firstrow'))
+
+with open('first.csv', 'w') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    csvwriter.writerows(match_data)
